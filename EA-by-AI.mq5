@@ -1,6 +1,6 @@
 #property strict
 #property description "MQL5-native EA skeleton with deterministic coordinator, risk gate and dry-run execution planner"
-#property version   "001.200"
+#property version   "1.2"
 
 #include "Include/Coordination/DeterministicCoordinator.mqh"
 #include "Include/Execution/DryRunExecutionPlanner.mqh"
