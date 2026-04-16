@@ -1,0 +1,54 @@
+# Forex-MT5-EA
+
+Отдельный проект под `MQL5-native` советник для `MT5`.
+
+## Зачем он нужен
+
+`Forex-MT5-Core` остался Python prototype/spec и не является исполняемым советником.
+
+Этот проект нужен для реальной нативной реализации:
+
+- `EA` и coordinator работают прямо в `MT5`;
+- стратегии оформляются как pluggable `MQL5` классы;
+- decisions, arbitration, ratings и storage живут внутри терминального execution path;
+- внешний AI, если когда-то появится, остаётся только supervisory layer вне базового ядра.
+
+## Ближайшая цель
+
+Собрать первый `MQL5-native` skeleton:
+
+- базовые domain/contracts;
+- pluggable strategy interface;
+- deterministic coordinator;
+- filesystem storage для ratings/state;
+- dummy strategies для wiring;
+- минимальный `EA` entrypoint.
+
+## Что уже добавлено
+
+Первый нативный `MQL5` source slice теперь лежит в структуре `MQL5/...` и не использует `Python runtime` или какой-либо bridge в execution path.
+
+Структура:
+
+- `MQL5/Experts/ForexMt5EA/ForexMt5EA.mq5` - skeleton entrypoint советника, который собирает `StrategyContext`, вызывает coordinator и логирует итоговое решение.
+- `MQL5/Include/ForexMt5EA/Domain/StrategyContracts.mqh` - domain/contracts для `strategy id`, `decision types`, `strategy decision`, `strategy rating`.
+- `MQL5/Include/ForexMt5EA/Strategies/IStrategy.mqh` - pluggable strategy interface.
+- `MQL5/Include/ForexMt5EA/Strategies/StrategyBase.mqh` - базовый класс стратегии с примитивным persistent state.
+- `MQL5/Include/ForexMt5EA/Strategies/DummyTrendStrategy.mqh` - dummy strategy для wiring.
+- `MQL5/Include/ForexMt5EA/Strategies/DummyMeanReversionStrategy.mqh` - вторая dummy strategy для арбитрации.
+- `MQL5/Include/ForexMt5EA/Coordination/DeterministicCoordinator.mqh` - deterministic coordinator, который принимает список стратегий и выбирает победителя детерминированно.
+- `MQL5/Include/ForexMt5EA/Storage/FileStateStore.mqh` - файловый storage слой на `MT5 File API` для ratings/state.
+
+## Принципы skeleton
+
+- `EA` не содержит реальную торговую логику и не шлёт ордера.
+- Все решения стратегий проходят через deterministic coordinator.
+- Ratings и strategy state сохраняются через `FILE_COMMON`, чтобы их можно было использовать как persistent layer внутри терминала.
+- Dummy strategies нужны только для wiring, чтобы дальше можно было заменять их реальными `MQL5` классами без смены каркаса.
+
+## Как развивать дальше
+
+- заменить dummy strategies реальными signal generators;
+- расширить `StrategyContext` рыночными данными и risk constraints;
+- добавить execution/risk слой после coordinator, не ломая native execution path;
+- подключить versioned storage format для ratings/state, когда появится реальная эволюция схемы.
