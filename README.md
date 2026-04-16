@@ -38,13 +38,31 @@
 - `MQL5/Include/ForexMt5EA/Strategies/DummyMeanReversionStrategy.mqh` - вторая dummy strategy для арбитрации.
 - `MQL5/Include/ForexMt5EA/Coordination/DeterministicCoordinator.mqh` - deterministic coordinator, который принимает список стратегий и выбирает победителя детерминированно.
 - `MQL5/Include/ForexMt5EA/Storage/FileStateStore.mqh` - файловый storage слой на `MT5 File API` для ratings/state.
+- `MQL5/Include/ForexMt5EA/Domain/ExecutionContracts.mqh` - domain/contracts для `execution intent`, `target exposure`, `risk status`, `execution plan`.
+- `MQL5/Include/ForexMt5EA/Risk/DeterministicRiskGate.mqh` - deterministic risk gate, который валидирует intent и режет unsafe/impossible execution до planner'а.
+- `MQL5/Include/ForexMt5EA/Execution/DryRunExecutionPlanner.mqh` - dry-run planner для `netting`-style exposure transitions без реальной отправки ордеров.
 
 ## Принципы skeleton
 
 - `EA` не содержит реальную торговую логику и не шлёт ордера.
 - Все решения стратегий проходят через deterministic coordinator.
+- После coordinator решение превращается в `execution intent`, проходит через deterministic `risk gate` и только потом собирается в dry-run `execution plan`.
 - Ratings и strategy state сохраняются через `FILE_COMMON`, чтобы их можно было использовать как persistent layer внутри терминала.
 - Dummy strategies нужны только для wiring, чтобы дальше можно было заменять их реальными `MQL5` классами без смены каркаса.
+
+## Новый flow
+
+`OnTick` теперь проходит через следующую цепочку:
+
+- build `StrategyContext`;
+- получить coordinator decision;
+- собрать snapshot текущей `netting`-позиции по символу;
+- преобразовать decision в `ExecutionIntent`;
+- прогнать intent через deterministic `RiskGate`;
+- собрать dry-run `ExecutionPlan`;
+- залогировать `decision`, `risk status` и итоговый `execution plan`.
+
+Это остаётся безопасным skeleton'ом следующего слоя: planner умеет только моделировать `hold/open/increase/reduce/close/flip`, но не вызывает `OrderSend`.
 
 ## Как развивать дальше
 
