@@ -10,16 +10,20 @@ private:
 
    bool              EnsureFolders(void)
      {
+      // FolderCreate() returns false when the folder already exists, which is not an error for this store.
       ResetLastError();
-      const bool root_created=FolderCreate(m_root,FILE_COMMON);
-      const int root_error=GetLastError();
+      FolderCreate(m_root,FILE_COMMON);
       ResetLastError();
-      const bool state_created=FolderCreate(m_root+"\\state",FILE_COMMON);
-      const int state_error=GetLastError();
+      FolderCreate(m_root+"\\state",FILE_COMMON);
       ResetLastError();
-      const bool root_ready=root_created || root_error==ERR_FILE_ALREADY_EXISTS;
-      const bool state_ready=state_created || state_error==ERR_FILE_ALREADY_EXISTS;
-      return root_ready && state_ready;
+
+      const int state_probe=FileOpen(m_root+"\\state\\.probe",FILE_COMMON|FILE_WRITE|FILE_TXT|FILE_ANSI);
+      if(state_probe==INVALID_HANDLE)
+         return false;
+
+      FileClose(state_probe);
+      FileDelete(m_root+"\\state\\.probe",FILE_COMMON);
+      return true;
      }
 
 public:

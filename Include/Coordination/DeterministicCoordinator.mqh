@@ -49,7 +49,7 @@ public:
       m_store=&store;
      }
 
-   void              Configure(IStrategy *strategies[],const int count)
+   void              Configure(IStrategy *&strategies[],const int count)
      {
       ArrayResize(m_strategies,count);
       for(int i=0;i<count;i++)
