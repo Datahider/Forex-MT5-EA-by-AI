@@ -4,8 +4,9 @@
 enum ENUM_STRATEGY_ID
   {
    STRATEGY_ID_NONE=0,
-   STRATEGY_ID_DUMMY_TREND=1,
-   STRATEGY_ID_DUMMY_MEAN_REVERSION=2
+   STRATEGY_ID_EMA_TREND=1,
+   STRATEGY_ID_RSI_MEAN_REVERSION=2,
+   STRATEGY_ID_RANGE_BREAKOUT=3
   };
 
 enum ENUM_DECISION_TYPE
@@ -51,10 +52,12 @@ string StrategyIdToString(const ENUM_STRATEGY_ID strategy_id)
   {
    switch(strategy_id)
      {
-      case STRATEGY_ID_DUMMY_TREND:
-         return "DUMMY_TREND";
-      case STRATEGY_ID_DUMMY_MEAN_REVERSION:
-         return "DUMMY_MEAN_REVERSION";
+      case STRATEGY_ID_EMA_TREND:
+         return "EMA_TREND";
+      case STRATEGY_ID_RSI_MEAN_REVERSION:
+         return "RSI_MEAN_REVERSION";
+      case STRATEGY_ID_RANGE_BREAKOUT:
+         return "RANGE_BREAKOUT";
       default:
          return "NONE";
      }

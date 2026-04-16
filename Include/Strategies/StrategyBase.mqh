@@ -11,6 +11,17 @@ protected:
    string            m_name;
    int               m_evaluations;
 
+   virtual string    SerializeState(void) const
+     {
+      return IntegerToString(m_evaluations);
+     }
+
+   virtual bool      DeserializeState(const string payload)
+     {
+      m_evaluations=(int)StringToInteger(payload);
+      return true;
+     }
+
 public:
                      StrategyBase(const ENUM_STRATEGY_ID strategy_id,const string key,const string name)
      {
@@ -41,13 +52,12 @@ public:
       if(!store.LoadStrategyState(m_key,payload))
          return false;
 
-      m_evaluations=(int)StringToInteger(payload);
-      return true;
+      return DeserializeState(payload);
      }
 
    virtual bool      SaveState(FileStateStore &store)
      {
-      return store.SaveStrategyState(m_key,IntegerToString(m_evaluations));
+      return store.SaveStrategyState(m_key,SerializeState());
      }
   };
 

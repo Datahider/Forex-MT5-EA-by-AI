@@ -1,13 +1,14 @@
 #property strict
 #property description "MQL5-native EA with deterministic coordinator, risk gate, netting planner and guarded OrderSend execution"
-#property version   "1.3"
+#property version   "1.4"
 
 #include "Include/Coordination/DeterministicCoordinator.mqh"
 #include "Include/Execution/NettingExecutionPlanner.mqh"
 #include "Include/Execution/Mt5TradeExecutor.mqh"
 #include "Include/Risk/DeterministicRiskGate.mqh"
-#include "Include/Strategies/DummyTrendStrategy.mqh"
-#include "Include/Strategies/DummyMeanReversionStrategy.mqh"
+#include "Include/Strategies/EmaTrendStrategy.mqh"
+#include "Include/Strategies/RsiMeanReversionStrategy.mqh"
+#include "Include/Strategies/RangeBreakoutStrategy.mqh"
 
 input bool InpPersistState=true;
 input bool InpEnableLiveExecution=false;
@@ -23,8 +24,9 @@ DeterministicCoordinator      g_coordinator;
 DeterministicRiskGate         g_risk_gate;
 NettingExecutionPlanner       g_execution_planner;
 Mt5TradeExecutor              g_trade_executor;
-DummyTrendStrategy            g_trend_strategy;
-DummyMeanReversionStrategy    g_mean_reversion_strategy;
+EmaTrendStrategy              g_trend_strategy;
+RsiMeanReversionStrategy      g_mean_reversion_strategy;
+RangeBreakoutStrategy         g_breakout_strategy;
 
 bool IsTesterExecutionRuntime(void)
   {
@@ -126,9 +128,10 @@ bool BuildExecutionIntent(const StrategyContext &context,
 
 int OnInit(void)
   {
-   IStrategy *strategies[2];
+   IStrategy *strategies[3];
    strategies[0]=&g_trend_strategy;
    strategies[1]=&g_mean_reversion_strategy;
+   strategies[2]=&g_breakout_strategy;
 
    g_coordinator.AttachStore(g_store);
    g_coordinator.Configure(strategies,ArraySize(strategies));

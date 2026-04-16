@@ -21,7 +21,7 @@
 - pluggable strategy interface;
 - deterministic coordinator;
 - filesystem storage для ratings/state;
-- dummy strategies для wiring;
+- индикаторные стратегии на стандартных `MQL5` handles;
 - минимальный `EA` entrypoint.
 
 ## Что уже добавлено
@@ -34,8 +34,9 @@
 - `Include/Domain/StrategyContracts.mqh` - domain/contracts для `strategy id`, `decision types`, `strategy decision`, `strategy rating`.
 - `Include/Strategies/IStrategy.mqh` - pluggable strategy interface.
 - `Include/Strategies/StrategyBase.mqh` - базовый класс стратегии с примитивным persistent state.
-- `Include/Strategies/DummyTrendStrategy.mqh` - dummy strategy для wiring.
-- `Include/Strategies/DummyMeanReversionStrategy.mqh` - вторая dummy strategy для арбитрации.
+- `Include/Strategies/EmaTrendStrategy.mqh` - trend-following стратегия на `EMA(21/55)` с фильтром `ADX(14)`.
+- `Include/Strategies/RsiMeanReversionStrategy.mqh` - mean-reversion стратегия на `RSI(14)` и возврате внутрь `Bollinger Bands(20, 2.0)`.
+- `Include/Strategies/RangeBreakoutStrategy.mqh` - breakout стратегия по пробою `20-bar` диапазона с фильтром на `ATR(14)` и форме свечи.
 - `Include/Coordination/DeterministicCoordinator.mqh` - deterministic coordinator, который принимает список стратегий и выбирает победителя детерминированно.
 - `Include/Storage/FileStateStore.mqh` - файловый storage слой на `MT5 File API` для ratings/state.
 - `Include/Domain/ExecutionContracts.mqh` - domain/contracts для `execution intent`, `target exposure`, `risk status`, `execution plan`.
@@ -49,8 +50,16 @@
 - Все решения стратегий проходят через deterministic coordinator.
 - После coordinator решение превращается в `execution intent`, проходит через deterministic `risk gate`, затем собирается `netting execution plan`, и только после этого возможен реальный `OrderSend`.
 - Ratings и strategy state сохраняются через `FILE_COMMON`, чтобы их можно было использовать как persistent layer внутри терминала.
-- Dummy strategies нужны только для wiring, чтобы дальше можно было заменять их реальными `MQL5` классами без смены каркаса.
+- Стратегии используют только стандартные `MQL5` индикаторы и считают сигнал только на первом тике нового бара по закрытым барам, чтобы не дублировать решения на каждом тике.
 - Live execution защищён явным input guard: по умолчанию `InpEnableLiveExecution=false`, но в `MT5 Strategy Tester` тот же execution path доступен без отдельной симуляции.
+
+## Текущие стратегии
+
+- `EMA Trend` даёт `BUY/SELL` только на новом закрытом баре, когда `EMA(21)` пересекает `EMA(55)`, а `ADX(14)` остаётся выше минимального порога силы тренда.
+- `RSI Mean Reversion` ищет редкий возврат из экстремума: один закрытый бар должен уйти за внешнюю полосу Bollinger вместе с экстремальным `RSI`, а следующий закрытый бар должен вернуться внутрь диапазона вместе с нормализацией RSI.
+- `Range Breakout` даёт сигнал только если закрытый бар пробивает максимум или минимум последних `20` закрытых баров, закрывается у края своей свечи и выносит диапазон хотя бы на долю текущего `ATR(14)`.
+
+Coordinator по-прежнему делает deterministic arbitration: сначала сравнивает `weight_bps * confidence_bps`, затем `confidence_bps`, затем `strategy_id`.
 
 ## Новый flow
 
@@ -86,7 +95,6 @@
 
 ## Как развивать дальше
 
-- заменить dummy strategies реальными signal generators;
 - расширить `StrategyContext` рыночными данными и risk constraints;
 - расширить execution policy поверх текущего `OrderSend` слоя, не ломая deterministic coordinator/risk pipeline;
 - подключить versioned storage format для ratings/state, когда появится реальная эволюция схемы.
