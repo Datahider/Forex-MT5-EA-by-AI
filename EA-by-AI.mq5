@@ -1,25 +1,60 @@
 #property strict
-#property description "MQL5-native EA skeleton with deterministic coordinator, risk gate and dry-run execution planner"
-#property version   "1.2"
+#property description "MQL5-native EA with deterministic coordinator, risk gate, netting planner and guarded OrderSend execution"
+#property version   "1.3"
 
 #include "Include/Coordination/DeterministicCoordinator.mqh"
-#include "Include/Execution/DryRunExecutionPlanner.mqh"
+#include "Include/Execution/NettingExecutionPlanner.mqh"
+#include "Include/Execution/Mt5TradeExecutor.mqh"
 #include "Include/Risk/DeterministicRiskGate.mqh"
 #include "Include/Strategies/DummyTrendStrategy.mqh"
 #include "Include/Strategies/DummyMeanReversionStrategy.mqh"
 
 input bool InpPersistState=true;
+input bool InpEnableLiveExecution=false;
 input int InpMaxSpreadPoints=30;
 input int InpMinConfidenceBps=5500;
 input double InpMaxTargetVolumeLots=0.10;
 input double InpLotStep=0.01;
+input uint InpExecutionDeviationPoints=20;
+input long InpExpertMagicNumber=20260416;
 
 FileStateStore                g_store("ForexMt5EA");
 DeterministicCoordinator      g_coordinator;
 DeterministicRiskGate         g_risk_gate;
-DryRunExecutionPlanner        g_execution_planner;
+NettingExecutionPlanner       g_execution_planner;
+Mt5TradeExecutor              g_trade_executor;
 DummyTrendStrategy            g_trend_strategy;
 DummyMeanReversionStrategy    g_mean_reversion_strategy;
+
+bool IsTesterExecutionRuntime(void)
+  {
+   return (bool)MQLInfoInteger(MQL_TESTER);
+  }
+
+bool IsRuntimeExecutionAllowed(void)
+  {
+   if(IsTesterExecutionRuntime())
+      return true;
+
+   if(!InpEnableLiveExecution)
+      return false;
+
+   return (bool)MQLInfoInteger(MQL_TRADE_ALLOWED) && (bool)TerminalInfoInteger(TERMINAL_TRADE_ALLOWED);
+  }
+
+string ExecutionRuntimeModeLabel(void)
+  {
+   if(IsTesterExecutionRuntime())
+      return "TESTER_ORDER_SEND_ENABLED";
+
+   if(InpEnableLiveExecution && IsRuntimeExecutionAllowed())
+      return "LIVE_ORDER_SEND_ENABLED";
+
+   if(InpEnableLiveExecution)
+      return "LIVE_ORDER_SEND_BLOCKED";
+
+   return "LIVE_ORDER_SEND_DISABLED";
+  }
 
 bool BuildStrategyContext(StrategyContext &context)
   {
@@ -49,6 +84,7 @@ bool BuildPositionSnapshot(PositionSnapshot &snapshot)
    snapshot.exists=true;
    snapshot.volume_lots=PositionGetDouble(POSITION_VOLUME);
    snapshot.avg_price=PositionGetDouble(POSITION_PRICE_OPEN);
+   snapshot.ticket=(ulong)PositionGetInteger(POSITION_TICKET);
 
    const long position_type=PositionGetInteger(POSITION_TYPE);
    if(position_type==POSITION_TYPE_BUY)
@@ -98,8 +134,9 @@ int OnInit(void)
    g_coordinator.Configure(strategies,ArraySize(strategies));
    g_coordinator.Initialize();
    g_risk_gate.Configure(InpMaxSpreadPoints,InpMinConfidenceBps,InpMaxTargetVolumeLots,InpLotStep);
+   g_trade_executor.Configure(InpExpertMagicNumber,InpExecutionDeviationPoints);
 
-   Print("ForexMt5EA skeleton initialized in dry-run mode");
+   PrintFormat("ForexMt5EA initialized, runtime_mode=%s",ExecutionRuntimeModeLabel());
    return INIT_SUCCEEDED;
   }
 
@@ -135,6 +172,9 @@ void OnTick(void)
    ExecutionPlan plan;
    g_execution_planner.BuildPlan(intent,target,risk_status,plan);
 
+   ExecutionReport execution_report;
+   g_trade_executor.Execute(plan,position,IsRuntimeExecutionAllowed(),execution_report);
+
    if(InpPersistState)
       g_coordinator.Persist();
 
@@ -151,8 +191,7 @@ void OnTick(void)
                ExposureSideToString(target.target_side),
                target.target_volume_lots);
 
-   PrintFormat("Execution plan: dry_run=%s executable=%s action=%s current=%s %.2f -> target=%s %.2f delta=%.2f price=%.5f summary=%s",
-               (plan.dry_run ? "true" : "false"),
+   PrintFormat("Execution plan: executable=%s action=%s current=%s %.2f -> target=%s %.2f delta=%.2f price=%.5f summary=%s",
                (plan.executable ? "true" : "false"),
                ExecutionActionToString(plan.action),
                ExposureSideToString(plan.current_side),
@@ -163,5 +202,20 @@ void OnTick(void)
                plan.reference_price,
                plan.summary);
 
-   // Real order placement remains intentionally disabled in this skeleton.
+   PrintFormat("Execution runtime: mode=%s status=%s attempted=%s request_built=%s request_sent=%s accepted=%s action=%s order_type=%s request_volume=%.2f request_price=%.5f position_ticket=%I64u retcode=%u deal=%I64u order=%I64u message=%s",
+               ExecutionRuntimeModeLabel(),
+               ExecutionRuntimeStatusToString(execution_report.runtime_status),
+               (execution_report.attempted ? "true" : "false"),
+               (execution_report.request_built ? "true" : "false"),
+               (execution_report.request_sent ? "true" : "false"),
+               (execution_report.result_accepted ? "true" : "false"),
+               ExecutionActionToString(execution_report.action),
+               OrderTypeToString(execution_report.order_type),
+               execution_report.request_volume_lots,
+               execution_report.request_price,
+               execution_report.request_position_ticket,
+               execution_report.result_retcode,
+               execution_report.result_deal,
+               execution_report.result_order,
+               execution_report.message);
   }

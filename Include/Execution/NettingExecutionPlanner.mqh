@@ -1,9 +1,9 @@
-#ifndef FOREXMT5EA_EXECUTION_DRYRUNEXECUTIONPLANNER_MQH
-#define FOREXMT5EA_EXECUTION_DRYRUNEXECUTIONPLANNER_MQH
+#ifndef FOREXMT5EA_EXECUTION_NETTINGEXECUTIONPLANNER_MQH
+#define FOREXMT5EA_EXECUTION_NETTINGEXECUTIONPLANNER_MQH
 
 #include "../Domain/ExecutionContracts.mqh"
 
-class DryRunExecutionPlanner
+class NettingExecutionPlanner
   {
 private:
    double            SignedVolume(const ENUM_EXPOSURE_SIDE side,const double volume_lots) const
@@ -36,7 +36,7 @@ public:
       if(!status.allowed)
         {
          plan.action=EXECUTION_ACTION_REJECT;
-         plan.summary="Dry-run rejected by risk gate: "+status.reason;
+         plan.summary="Rejected by risk gate: "+status.reason;
          return true;
         }
 
@@ -48,7 +48,7 @@ public:
         {
          plan.action=EXECUTION_ACTION_HOLD;
          plan.executable=true;
-         plan.summary="Dry-run hold: target exposure already satisfied";
+         plan.summary="Hold: target exposure already satisfied";
          return true;
         }
 
@@ -56,7 +56,7 @@ public:
         {
          plan.action=EXECUTION_ACTION_CLOSE_POSITION;
          plan.executable=intent.current_side!=EXPOSURE_SIDE_FLAT && intent.current_volume_lots>0.0;
-         plan.summary="Dry-run close to flat netting exposure";
+         plan.summary="Close to flat netting exposure";
          return true;
         }
 
@@ -64,7 +64,7 @@ public:
         {
          plan.action=(target.target_side==EXPOSURE_SIDE_LONG ? EXECUTION_ACTION_OPEN_LONG : EXECUTION_ACTION_OPEN_SHORT);
          plan.executable=target.target_volume_lots>0.0;
-         plan.summary="Dry-run open from flat netting exposure";
+         plan.summary="Open from flat netting exposure";
          return true;
         }
 
@@ -72,7 +72,7 @@ public:
         {
          plan.action=(target.target_side==EXPOSURE_SIDE_LONG ? EXECUTION_ACTION_FLIP_TO_LONG : EXECUTION_ACTION_FLIP_TO_SHORT);
          plan.executable=target.target_volume_lots>0.0;
-         plan.summary="Dry-run flip netting exposure through opposite-side deal";
+         plan.summary="Flip netting exposure through opposite-side deal";
          return true;
         }
 
@@ -80,13 +80,13 @@ public:
         {
          plan.action=(target.target_side==EXPOSURE_SIDE_LONG ? EXECUTION_ACTION_INCREASE_LONG : EXECUTION_ACTION_INCREASE_SHORT);
          plan.executable=true;
-         plan.summary="Dry-run increase existing netting exposure";
+         plan.summary="Increase existing netting exposure";
          return true;
         }
 
       plan.action=(target.target_side==EXPOSURE_SIDE_LONG ? EXECUTION_ACTION_REDUCE_LONG : EXECUTION_ACTION_REDUCE_SHORT);
       plan.executable=target.target_volume_lots>=0.0;
-      plan.summary="Dry-run reduce existing netting exposure";
+      plan.summary="Reduce existing netting exposure";
       return true;
      }
   };

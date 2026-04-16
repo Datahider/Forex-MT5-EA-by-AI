@@ -44,6 +44,7 @@ struct PositionSnapshot
    ENUM_EXPOSURE_SIDE side;
    double            volume_lots;
    double            avg_price;
+   ulong             ticket;
    bool              exists;
   };
 
@@ -81,7 +82,6 @@ struct RiskStatus
 
 struct ExecutionPlan
   {
-   bool              dry_run;
    bool              executable;
    ENUM_EXECUTION_ACTION action;
    string            symbol;
@@ -93,6 +93,36 @@ struct ExecutionPlan
    double            reference_price;
    string            summary;
    datetime          planned_at;
+  };
+
+enum ENUM_EXECUTION_RUNTIME_STATUS
+  {
+   EXECUTION_RUNTIME_STATUS_NONE=0,
+   EXECUTION_RUNTIME_STATUS_NOOP=1,
+   EXECUTION_RUNTIME_STATUS_BLOCKED_BY_GUARD=2,
+   EXECUTION_RUNTIME_STATUS_FAILED=3,
+   EXECUTION_RUNTIME_STATUS_SENT=4
+  };
+
+struct ExecutionReport
+  {
+   ENUM_EXECUTION_RUNTIME_STATUS runtime_status;
+   bool              runtime_allowed;
+   bool              attempted;
+   bool              request_built;
+   bool              request_sent;
+   bool              result_accepted;
+   ENUM_EXECUTION_ACTION action;
+   string            symbol;
+   ENUM_ORDER_TYPE   order_type;
+   double            request_volume_lots;
+   double            request_price;
+   ulong             request_position_ticket;
+   ulong             result_deal;
+   ulong             result_order;
+   uint              result_retcode;
+   string            message;
+   datetime          executed_at;
   };
 
 string ExposureSideToString(const ENUM_EXPOSURE_SIDE side)
@@ -157,6 +187,36 @@ string RiskStatusCodeToString(const ENUM_RISK_STATUS_CODE code)
          return "BLOCKED_INVALID_TARGET";
       case RISK_STATUS_BLOCKED_IMPOSSIBLE_INTENT:
          return "BLOCKED_IMPOSSIBLE_INTENT";
+     default:
+         return "UNKNOWN";
+     }
+  }
+
+string ExecutionRuntimeStatusToString(const ENUM_EXECUTION_RUNTIME_STATUS status)
+  {
+   switch(status)
+     {
+      case EXECUTION_RUNTIME_STATUS_NOOP:
+         return "NOOP";
+      case EXECUTION_RUNTIME_STATUS_BLOCKED_BY_GUARD:
+         return "BLOCKED_BY_GUARD";
+      case EXECUTION_RUNTIME_STATUS_FAILED:
+         return "FAILED";
+      case EXECUTION_RUNTIME_STATUS_SENT:
+         return "SENT";
+      default:
+         return "NONE";
+     }
+  }
+
+string OrderTypeToString(const ENUM_ORDER_TYPE order_type)
+  {
+   switch(order_type)
+     {
+      case ORDER_TYPE_BUY:
+         return "BUY";
+      case ORDER_TYPE_SELL:
+         return "SELL";
       default:
          return "UNKNOWN";
      }
@@ -168,6 +228,7 @@ void ResetPositionSnapshot(PositionSnapshot &snapshot)
    snapshot.side=EXPOSURE_SIDE_FLAT;
    snapshot.volume_lots=0.0;
    snapshot.avg_price=0.0;
+   snapshot.ticket=0;
    snapshot.exists=false;
   }
 
@@ -205,7 +266,6 @@ void ResetRiskStatus(RiskStatus &status)
 
 void ResetExecutionPlan(ExecutionPlan &plan)
   {
-   plan.dry_run=true;
    plan.executable=false;
    plan.action=EXECUTION_ACTION_NONE;
    plan.symbol="";
@@ -217,6 +277,27 @@ void ResetExecutionPlan(ExecutionPlan &plan)
    plan.reference_price=0.0;
    plan.summary="";
    plan.planned_at=0;
+  }
+
+void ResetExecutionReport(ExecutionReport &report)
+  {
+   report.runtime_status=EXECUTION_RUNTIME_STATUS_NONE;
+   report.runtime_allowed=false;
+   report.attempted=false;
+   report.request_built=false;
+   report.request_sent=false;
+   report.result_accepted=false;
+   report.action=EXECUTION_ACTION_NONE;
+   report.symbol="";
+   report.order_type=(ENUM_ORDER_TYPE)-1;
+   report.request_volume_lots=0.0;
+   report.request_price=0.0;
+   report.request_position_ticket=0;
+   report.result_deal=0;
+   report.result_order=0;
+   report.result_retcode=0;
+   report.message="";
+   report.executed_at=0;
   }
 
 #endif
