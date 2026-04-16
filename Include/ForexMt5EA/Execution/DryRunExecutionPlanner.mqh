@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_EXECUTION_DRYRUNEXECUTIONPLANNER_MQH
 #define FOREXMT5EA_EXECUTION_DRYRUNEXECUTIONPLANNER_MQH
 
-#include <ForexMt5EA/Domain/ExecutionContracts.mqh>
+#include "../Domain/ExecutionContracts.mqh"
 
 class DryRunExecutionPlanner
   {

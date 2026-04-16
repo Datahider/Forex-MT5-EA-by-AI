@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_STORAGE_FILESTATESTORE_MQH
 #define FOREXMT5EA_STORAGE_FILESTATESTORE_MQH
 
-#include <ForexMt5EA/Domain/StrategyContracts.mqh>
+#include "../Domain/StrategyContracts.mqh"
 
 class FileStateStore
   {

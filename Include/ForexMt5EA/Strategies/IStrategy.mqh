@@ -1,8 +1,8 @@
 #ifndef FOREXMT5EA_STRATEGIES_ISTRATEGY_MQH
 #define FOREXMT5EA_STRATEGIES_ISTRATEGY_MQH
 
-#include <ForexMt5EA/Domain/StrategyContracts.mqh>
-#include <ForexMt5EA/Storage/FileStateStore.mqh>
+#include "../Domain/StrategyContracts.mqh"
+#include "../Storage/FileStateStore.mqh"
 
 class IStrategy
   {

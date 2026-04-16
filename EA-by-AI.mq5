@@ -2,11 +2,11 @@
 #property description "MQL5-native EA skeleton with deterministic coordinator, risk gate and dry-run execution planner"
 #property version   "0.2"
 
-#include <ForexMt5EA/Coordination/DeterministicCoordinator.mqh>
-#include <ForexMt5EA/Execution/DryRunExecutionPlanner.mqh>
-#include <ForexMt5EA/Risk/DeterministicRiskGate.mqh>
-#include <ForexMt5EA/Strategies/DummyTrendStrategy.mqh>
-#include <ForexMt5EA/Strategies/DummyMeanReversionStrategy.mqh>
+#include "Include/ForexMt5EA/Coordination/DeterministicCoordinator.mqh"
+#include "Include/ForexMt5EA/Execution/DryRunExecutionPlanner.mqh"
+#include "Include/ForexMt5EA/Risk/DeterministicRiskGate.mqh"
+#include "Include/ForexMt5EA/Strategies/DummyTrendStrategy.mqh"
+#include "Include/ForexMt5EA/Strategies/DummyMeanReversionStrategy.mqh"
 
 input bool InpPersistState=true;
 input int InpMaxSpreadPoints=30;

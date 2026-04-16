@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_DOMAIN_EXECUTIONCONTRACTS_MQH
 #define FOREXMT5EA_DOMAIN_EXECUTIONCONTRACTS_MQH
 
-#include <ForexMt5EA/Domain/StrategyContracts.mqh>
+#include "StrategyContracts.mqh"
 
 enum ENUM_EXPOSURE_SIDE
   {

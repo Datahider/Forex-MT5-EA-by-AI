@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_COORDINATION_DETERMINISTICCOORDINATOR_MQH
 #define FOREXMT5EA_COORDINATION_DETERMINISTICCOORDINATOR_MQH
 
-#include <ForexMt5EA/Strategies/IStrategy.mqh>
+#include "../Strategies/IStrategy.mqh"
 
 class DeterministicCoordinator
   {

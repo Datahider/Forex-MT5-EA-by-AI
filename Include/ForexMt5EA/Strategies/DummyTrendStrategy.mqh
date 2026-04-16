@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_STRATEGIES_DUMMYTRENDSTRATEGY_MQH
 #define FOREXMT5EA_STRATEGIES_DUMMYTRENDSTRATEGY_MQH
 
-#include <ForexMt5EA/Strategies/StrategyBase.mqh>
+#include "StrategyBase.mqh"
 
 class DummyTrendStrategy : public StrategyBase
   {

@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_STRATEGIES_DUMMYMEANREVERSIONSTRATEGY_MQH
 #define FOREXMT5EA_STRATEGIES_DUMMYMEANREVERSIONSTRATEGY_MQH
 
-#include <ForexMt5EA/Strategies/StrategyBase.mqh>
+#include "StrategyBase.mqh"
 
 class DummyMeanReversionStrategy : public StrategyBase
   {

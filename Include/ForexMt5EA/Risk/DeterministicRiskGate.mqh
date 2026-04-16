@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_RISK_DETERMINISTICRISKGATE_MQH
 #define FOREXMT5EA_RISK_DETERMINISTICRISKGATE_MQH
 
-#include <ForexMt5EA/Domain/ExecutionContracts.mqh>
+#include "../Domain/ExecutionContracts.mqh"
 
 class DeterministicRiskGate
   {

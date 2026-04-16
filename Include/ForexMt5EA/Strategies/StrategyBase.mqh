@@ -1,7 +1,7 @@
 #ifndef FOREXMT5EA_STRATEGIES_STRATEGYBASE_MQH
 #define FOREXMT5EA_STRATEGIES_STRATEGYBASE_MQH
 
-#include <ForexMt5EA/Strategies/IStrategy.mqh>
+#include "IStrategy.mqh"
 
 class StrategyBase : public IStrategy
   {
