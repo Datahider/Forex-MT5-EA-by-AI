@@ -27,11 +27,11 @@ public:
          return true;
         }
 
-      if((((int)context.bar_time)/60)%2==0)
+      if((((int)context.bar_time)/60)%2!=0)
         {
          decision.decision_type=DECISION_TYPE_BUY;
          decision.confidence_bps=6500;
-         decision.reason="Even-minute trend pulse";
+         decision.reason="Odd-minute trend pulse";
          return true;
         }
 
